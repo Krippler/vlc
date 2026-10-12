@@ -236,6 +236,85 @@ void VLCMenuBar::FileMenu(qt_intf_t *p_intf, QMenu *menu)
 }
 
 /**
+ * Main menu of the interface: the most common actions, the complete
+ * set of menus remains available in the "More" sub menu
+ **/
+void VLCMenuBar::MainMenu( qt_intf_t *p_intf, QMenu *menu )
+{
+    auto mi = p_intf->p_mi;
+
+    addDPStaticEntry( menu, qtr( "Open &File(s)..." ),
+        ":/menu/file.svg", []() { THEDP->simpleOpenDialog(); } , "Ctrl+O" );
+    addDPStaticEntry( menu, qtr( "Open F&older..." ),
+        ":/menu/folder.svg", &DialogsProvider::PLOpenDir, "Ctrl+F" );
+    addDPStaticEntry( menu, qtr( "Open &Network Stream..." ),
+        ":/menu/network.svg", &DialogsProvider::openNetDialog, "Ctrl+N" );
+    addDPStaticEntry( menu, qtr( "Open &Disc..." ),
+        ":/menu/disc.svg", &DialogsProvider::openDiscDialog, "Ctrl+D" );
+    addDPStaticEntry( menu, qtr( "Open &Capture Device..." ),
+        ":/menu/capture-card.svg", &DialogsProvider::openCaptureDialog, "Ctrl+C" );
+    addDPStaticEntry( menu, qtr( "Conve&rt..." ),
+        ":/menu/sync.svg", &DialogsProvider::openAndTranscodingDialogs, "Ctrl+R" );
+
+    if( mi && var_InheritBool( p_intf, "save-recentplay" ) && mi->hasMediaLibrary() )
+    {
+        MLRecentMediaModel* recentModel = new MLRecentMediaModel(nullptr);
+        recentModel->setMl(mi->getMediaLibrary());
+        recentModel->setLimit(10);
+        QMenu* recentsMenu = new RecentMenu(recentModel, mi->getMediaLibrary(), menu);
+        recentsMenu->setTitle(qtr( "Open &Recent" ) );
+        recentsMenu->setIcon( ColorizedSvgIcon::colorizedIconForWidget( ":/menu/update.svg", menu ) );
+        recentModel->setParent(recentsMenu);
+        menu->addMenu( recentsMenu );
+    }
+
+    menu->addSeparator();
+
+    addDPStaticEntry( menu, qtr( "&Keyboard Shortcuts" ),
+        ":/menu/preferences.svg", &DialogsProvider::hotkeysDialog );
+
+    if( !p_intf->b_isDialogProvider )
+        addDPStaticEntry( menu, qtr( "Customi&ze Player..." ),
+            ":/menu/ic_fluent_options.svg", &DialogsProvider::showToolbarEditorDialog );
+
+    addDPStaticEntry( menu, qtr( "&Settings" ),
+        ":/menu/preferences.svg", &DialogsProvider::prefsDialog, "Ctrl+P", QAction::PreferencesRole );
+    addDPStaticEntry( menu, qfut( I_MENU_ABOUT ), ":/menu/info.svg",
+        &DialogsProvider::aboutDialog, "Shift+F1", QAction::AboutRole );
+
+    menu->addSeparator();
+
+    QMenu *more = menu->addMenu( qtr( "&More" ) );
+    QMenu *submenu;
+
+    submenu = more->addMenu( qtr( "&Media" ) );
+    FileMenu( p_intf, submenu );
+
+    /* Dynamic menus, rebuilt before being showed */
+    submenu = more->addMenu( qtr( "P&layback" ) );
+    NavigMenu( p_intf, submenu );
+
+    submenu = more->addMenu( qtr( "&Audio" ) );
+    AudioMenu( p_intf, submenu );
+
+    submenu = more->addMenu( qtr( "&Video" ) );
+    VideoMenu( p_intf, submenu );
+
+    submenu = more->addMenu( qtr( "Subti&tle" ) );
+    SubtitleMenu( p_intf, submenu );
+
+    submenu = more->addMenu( qtr( "Tool&s" ) );
+    ToolsMenu( p_intf, submenu );
+
+    /* View menu, a bit different */
+    submenu = more->addMenu( qtr( "V&iew" ) );
+    ViewMenu( p_intf, submenu );
+
+    submenu = more->addMenu( qtr( "&Help" ) );
+    HelpMenu( p_intf, submenu );
+}
+
+/**
  * Tools, like Media Information, Preferences or Messages
  **/
 void VLCMenuBar::ToolsMenu( qt_intf_t *p_intf, QMenu *menu )

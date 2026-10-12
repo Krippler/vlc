@@ -302,6 +302,19 @@ void DialogsProvider::prefsDialog()
     }
 }
 
+void DialogsProvider::hotkeysDialog()
+{
+    if (!m_prefsDialog)
+        prefsDialog();
+
+    if (Q_LIKELY(m_prefsDialog))
+    {
+        m_prefsDialog->showSimplePanel(SPrefsHotkeys);
+        m_prefsDialog->raise();
+        m_prefsDialog->activateWindow();
+    }
+}
+
 void DialogsProvider::firstRunDialog()
 {
     ensureDialog(m_firstRunDialog);
