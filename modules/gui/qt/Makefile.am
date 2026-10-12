@@ -902,6 +902,8 @@ libqt_plugin_la_RES = \
 	pixmaps/menu/ic_fluent_arrow_eject.svg \
 	pixmaps/menu/exit.svg \
 	pixmaps/menu/ic_fluent_fast_forward.svg \
+	pixmaps/menu/ic_fluent_keyboard.svg \
+	pixmaps/menu/ic_fluent_subtitle.svg \
 	pixmaps/menu/file.svg \
 	pixmaps/menu/folder.svg \
 	pixmaps/menu/help.svg \

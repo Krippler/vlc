@@ -77,6 +77,18 @@ RendererMenu *VLCMenuBar::rendererMenu = NULL;
 /**
  * @brief Add static entries to DP in menus
  **/
+/**
+ * Set the colorized icon of an action (typically the action of a sub menu)
+ **/
+static void setMenuIcon( QAction *action, const char *icon, const QMenu *menu )
+{
+#ifndef __APPLE__ /* We don't set icons in menus in MacOS X */
+    action->setIcon( ColorizedSvgIcon::colorizedIconForWidget( icon, menu ) );
+#else
+    VLC_UNUSED( action ); VLC_UNUSED( icon ); VLC_UNUSED( menu );
+#endif
+}
+
 template<typename Functor>
 QAction *addDPStaticEntry( QMenu *menu,
                        const QString& text,
@@ -271,7 +283,7 @@ void VLCMenuBar::MainMenu( qt_intf_t *p_intf, QMenu *menu )
     menu->addSeparator();
 
     addDPStaticEntry( menu, qtr( "&Keyboard Shortcuts" ),
-        ":/menu/preferences.svg", &DialogsProvider::hotkeysDialog );
+        ":/menu/ic_fluent_keyboard.svg", &DialogsProvider::hotkeysDialog );
 
     if( !p_intf->b_isDialogProvider )
         addDPStaticEntry( menu, qtr( "Customi&ze Player..." ),
@@ -696,7 +708,7 @@ void VLCMenuBar::PopupMenuPlaylistEntries( QMenu *menu, qt_intf_t *p_intf )
     connect( THEMPL, &PlaylistController::isEmptyChanged, nextAction, &QAction::setDisabled);
 
     action = menu->addAction( qtr( "Record" ), THEMIM, &PlayerController::toggleRecord );
-    action->setIcon( QIcon( ":/menu/ic_fluent_record.svg" ) );
+    setMenuIcon( action, ":/menu/ic_fluent_record.svg", menu );
     if( !hasInput )
         action->setEnabled( false );
     menu->addSeparator();
@@ -852,6 +864,7 @@ QMenu* VLCMenuBar::PopupMenu( qt_intf_t *p_intf, bool show )
         AudioMenu( p_intf, submenu );
         action = menu->addMenu( submenu );
         action->setText( qtr( "&Audio" ) );
+        setMenuIcon( action, ":/menu/music.svg", menu );
         if( action->menu()->isEmpty() )
             action->setEnabled( false );
 
@@ -860,6 +873,7 @@ QMenu* VLCMenuBar::PopupMenu( qt_intf_t *p_intf, bool show )
         VideoMenu( p_intf, submenu );
         action = menu->addMenu( submenu );
         action->setText( qtr( "&Video" ) );
+        setMenuIcon( action, ":/menu/movie.svg", menu );
         if( action->menu()->isEmpty() )
             action->setEnabled( false );
 
@@ -868,12 +882,14 @@ QMenu* VLCMenuBar::PopupMenu( qt_intf_t *p_intf, bool show )
         SubtitleMenu( p_intf, submenu, true );
         action = menu->addMenu( submenu );
         action->setText( qtr( "Subti&tle") );
+        setMenuIcon( action, ":/menu/ic_fluent_subtitle.svg", menu );
 
         /* Playback menu for chapters */
         submenu = new QMenu( menu );
         NavigMenu( p_intf, submenu );
         action = menu->addMenu( submenu );
         action->setText( qtr( "&Playback" ) );
+        setMenuIcon( action, ":/menu/ic_fluent_play_filled.svg", menu );
         if( action->menu()->isEmpty() )
             action->setEnabled( false );
     }
@@ -914,16 +930,6 @@ QMenu* VLCMenuBar::PopupMenu( qt_intf_t *p_intf, bool show )
 
             menu->addMenu( submenu );
         }
-        else
-        {
-            QMenu* toolsMenu = new QMenu( qtr( "Tool&s" ), menu );
-            ToolsMenu( p_intf, toolsMenu );
-            menu->addMenu( toolsMenu );
-
-            QMenu* viewMenu = new QMenu( qtr( "V&iew" ), menu );
-            ViewMenu( p_intf, viewMenu );
-            menu->addMenu( viewMenu );
-        }
     }
 
     /* Static entries for ending, like open */
@@ -944,7 +950,49 @@ QMenu* VLCMenuBar::PopupMenu( qt_intf_t *p_intf, bool show )
                           &DialogsProvider::quit, "Ctrl+Q", QAction::QuitRole );
     }
     else
-        PopupMenuStaticEntries( menu );
+    {
+        /* Open, settings, then the less common menus grouped in "More" */
+        QMenu *openmenu = new QMenu( qtr( "Open Media" ), menu );
+        addDPStaticEntry( openmenu, qtr( "Open &File(s)..." ),
+            ":/menu/file.svg", []() { THEDP->simpleOpenDialog(); }, "Ctrl+O" );
+        addDPStaticEntry( openmenu, qtr( "Open F&older..." ),
+            ":/menu/folder.svg", &DialogsProvider::PLOpenDir, "Ctrl+F" );
+        addDPStaticEntry( openmenu, qtr( "Open &Network Stream..." ),
+            ":/menu/network.svg", &DialogsProvider::openNetDialog, "Ctrl+N" );
+        addDPStaticEntry( openmenu, qtr( "Open &Disc..." ),
+            ":/menu/disc.svg", &DialogsProvider::openDiscDialog, "Ctrl+D" );
+        addDPStaticEntry( openmenu, qtr( "Open &Capture Device..." ),
+            ":/menu/capture-card.svg", &DialogsProvider::openCaptureDialog, "Ctrl+C" );
+        action = menu->addMenu( openmenu );
+        setMenuIcon( action, ":/menu/folder.svg", menu );
+
+        addDPStaticEntry( menu, qtr( "&Keyboard Shortcuts" ),
+            ":/menu/ic_fluent_keyboard.svg", &DialogsProvider::hotkeysDialog );
+        addDPStaticEntry( menu, qtr( "&Settings" ),
+            ":/menu/preferences.svg", &DialogsProvider::prefsDialog, "Ctrl+P", QAction::PreferencesRole );
+
+        if( !b_isFullscreen )
+        {
+            QMenu *more = menu->addMenu( qtr( "&More" ) );
+
+            QMenu* toolsMenu = new QMenu( qtr( "Tool&s" ), more );
+            ToolsMenu( p_intf, toolsMenu );
+            more->addMenu( toolsMenu );
+
+            QMenu* viewMenu = new QMenu( qtr( "V&iew" ), more );
+            ViewMenu( p_intf, viewMenu );
+            more->addMenu( viewMenu );
+
+            QMenu* helpMenu = new QMenu( qtr( "&Help" ), more );
+            HelpMenu( p_intf, helpMenu );
+            more->addMenu( helpMenu );
+        }
+
+        menu->addSeparator();
+
+        addDPStaticEntry( menu, qtr( "Quit" ), ":/menu/exit.svg",
+                          &DialogsProvider::quit, "Ctrl+Q", QAction::QuitRole );
+    }
 
     if( show )
         menu->popup( QCursor::pos() );
