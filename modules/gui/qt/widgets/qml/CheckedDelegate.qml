@@ -32,6 +32,8 @@ T.ItemDelegate {
 
     checkable: true
 
+    property color checkColor: theme.fg.primary
+
     font.pixelSize: VLCStyle.fontSize_large
 
     // Childs
@@ -64,7 +66,7 @@ T.ItemDelegate {
 
             text: VLCIcons.check
 
-            color: theme.fg.primary
+            color: control.checkColor
 
             font.pixelSize: VLCStyle.icon_track
         }

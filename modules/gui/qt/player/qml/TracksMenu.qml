@@ -38,7 +38,7 @@ T.Popup {
                           ? preferredWidth : Number.MAX_VALUE
                     , root.parent.width - 2 * VLCStyle.margin_small)
 
-    height: VLCStyle.dp(296, VLCStyle.scale)
+    height: VLCStyle.dp(360, VLCStyle.scale)
 
     // keep the content within the rounded corners of the background
     padding: VLCStyle.floatingPanel_radius / 2
