@@ -17,6 +17,7 @@
  *****************************************************************************/
 #include "systempalette.hpp"
 #include <QGuiApplication>
+#include <QApplication>
 #include <QPalette>
 #include <QSettings>
 #include <QFile>
@@ -382,6 +383,49 @@ void SystemPalette::setCtx(MainCtx* ctx)
     updatePalette();
 }
 
+void SystemPalette::setStyleWidgetMenus(bool value)
+{
+    if (m_styleWidgetMenus == value)
+        return;
+    m_styleWidgetMenus = value;
+    emit styleWidgetMenusChanged();
+    updateWidgetMenuStyle();
+}
+
+void SystemPalette::updateWidgetMenuStyle() const
+{
+    if (!m_styleWidgetMenus)
+        return;
+
+    // only applies to widget based applications, the rules only target QMenu
+    // so that the other widgets (dialogs) keep their native look
+    const auto app = qobject_cast<QApplication*>(QCoreApplication::instance());
+    if (!app)
+        return;
+
+    typedef ColorContext C;
+    const auto rgba = [](const QColor& c) {
+        return QStringLiteral("rgba(%1, %2, %3, %4)")
+            .arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha());
+    };
+
+    const QColor bg = getColor(C::Window, C::Bg, C::Primary, C::Normal);
+    const QColor fg = getColor(C::View, C::Fg, C::Primary, C::Normal);
+    const QColor fgDisabled = getColor(C::View, C::Fg, C::Primary, C::Disabled);
+    const QColor highlight = getColor(C::Item, C::Bg, C::Highlight, C::Normal);
+    const QColor border = getColor(C::Window, C::Decoration, C::Border, C::Normal);
+    const QColor separator = getColor(C::View, C::Decoration, C::Separator, C::Normal);
+
+    app->setStyleSheet(QStringLiteral(
+        "QMenu { background-color: %1; color: %2; border: 1px solid %5; padding: 6px; }"
+        "QMenu::item { background-color: transparent; padding: 8px 28px 8px 12px; border-radius: 4px; }"
+        "QMenu::item:selected { background-color: %4; color: %2; }"
+        "QMenu::item:disabled { color: %3; }"
+        "QMenu::icon { padding-left: 8px; }"
+        "QMenu::separator { height: 1px; background-color: %6; margin: 6px 8px; }")
+        .arg(rgba(bg), rgba(fg), rgba(fgDisabled), rgba(highlight), rgba(border), rgba(separator)));
+}
+
 void SystemPalette::updatePalette()
 {
     m_palettePriv.reset();
@@ -410,6 +454,8 @@ void SystemPalette::updatePalette()
             this, &SystemPalette::CSDMetricsChanged);
     }
     emit paletteChanged();
+
+    updateWidgetMenuStyle();
 
     bool hasCSDImage = m_palettePriv && m_palettePriv->hasCSDImages();
     if (m_hasCSDImage != hasCSDImage)

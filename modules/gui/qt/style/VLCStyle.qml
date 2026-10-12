@@ -39,6 +39,7 @@ QtObject {
         objectName: "themePalette"
         source: MainCtx.colorScheme.scheme
         ctx: MainCtx
+        styleWidgetMenus: true
     }
 
     readonly property SystemPalette darkPalette: SystemPalette {

@@ -109,6 +109,8 @@ public:
     Q_PROPERTY(bool isDark MEMBER m_isDark NOTIFY paletteChanged FINAL)
     Q_PROPERTY(bool hasCSDImage READ hasCSDImage NOTIFY hasCSDImageChanged FINAL)
     Q_PROPERTY(CSDMetrics* csdMetrics READ getCSDMetrics NOTIFY CSDMetricsChanged FINAL)
+    // when set, the native (widget based) menus of the application follow this palette
+    Q_PROPERTY(bool styleWidgetMenus READ styleWidgetMenus WRITE setStyleWidgetMenus NOTIFY styleWidgetMenusChanged FINAL)
 
     //standard color definitions used by light/dark themes
     COLOR_DEFINITION(orange500, "#D37918");
@@ -148,6 +150,7 @@ public:
     CSDMetrics* getCSDMetrics() const;
 
     inline MainCtx* getCtx() const { return m_ctx; }
+    inline bool styleWidgetMenus() const { return m_styleWidgetMenus; }
     bool hasCSDImage() const;
 
     void setColor(ColorContext::ColorSet colorSet,  ColorContext::ColorSection section,
@@ -161,6 +164,7 @@ public:
 public slots:
     void setSource(ColorSchemeModel::ColorScheme source);
     void setCtx(MainCtx* ctx);
+    void setStyleWidgetMenus(bool value);
 
 
 signals:
@@ -169,9 +173,11 @@ signals:
     void hasCSDImageChanged();
     void ctxChanged();
     void CSDMetricsChanged();
+    void styleWidgetMenusChanged();
 
 private:
     void updatePalette();
+    void updateWidgetMenuStyle() const;
 
     void makeLightPalette();
     void makeDarkPalette();
@@ -183,6 +189,7 @@ private:
     ColorSchemeModel::ColorScheme m_source = ColorSchemeModel::ColorScheme::Day;
     bool m_isDark = false;
     bool m_hasCSDImage = false;
+    bool m_styleWidgetMenus = false;
 
     std::unique_ptr<ExternalPaletteImpl> m_palettePriv;
 
