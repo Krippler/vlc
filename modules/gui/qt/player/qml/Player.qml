@@ -1040,7 +1040,11 @@ FocusScope {
             right: parent.right
             bottom: parent.bottom
 
-            bottomMargin: parent.height - rootPlayer.positionSliderY
+            // the play queue floats above the video, below the top bar
+            topMargin: (rootPlayer._controlsUnderVideo) ? VLCStyle.margin_small
+                                                        : topBar.reservedHeight
+            rightMargin: VLCStyle.margin_small + VLCStyle.applicationHorizontalMargin
+            bottomMargin: parent.height - rootPlayer.positionSliderY + VLCStyle.margin_small
         }
 
         focus: false
@@ -1108,18 +1112,13 @@ FocusScope {
 
             wheelEnabled: true
 
-            rightPadding: VLCStyle.applicationHorizontalMargin
-            topPadding:  {
-                if (rootPlayer._controlsUnderVideo)
-                    return VLCStyle.margin_normal
-                else
-                    // NOTE: We increase the padding accordingly to avoid overlapping the TopBar.
-                    return topBar.reservedHeight
-            }
-            bottomPadding: 0
+            rightPadding: VLCStyle.margin_xsmall
+            topPadding: VLCStyle.margin_normal
+            bottomPadding: VLCStyle.margin_xsmall
 
             background: Rectangle {
-                color: windowTheme.bg.primary.alpha(0.8)
+                color: windowTheme.bg.secondary.alpha(0.95)
+                radius: VLCStyle.floatingPanel_radius
             }
 
             view.fadingEdge.pixelAlignedForDPR: !controlBar.visible
@@ -1298,7 +1297,7 @@ FocusScope {
 
         textPosition: (MainCtx.pinVideoControls)
                       ? ControlBar.TimeTextPosition.LeftRightSlider
-                      : ControlBar.TimeTextPosition.AboveSlider
+                      : ControlBar.TimeTextPosition.Inline
 
         // hide right text so that it won't overlap with play queue
         showRemainingTime: (textPosition !== ControlBar.TimeTextPosition.AboveSlider)

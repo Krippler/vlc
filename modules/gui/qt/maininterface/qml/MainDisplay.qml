@@ -275,6 +275,8 @@ FocusScope {
         navigationVisible: pannelVisiblity.showNavigation
         playqueueVisible: pannelVisiblity.showPlayqueue
 
+        location: sidebar.currentTitle
+
         Navigation.parentItem: g_mainDisplay
         Navigation.upItem: menuTopbar
         Navigation.downItem: mainRow

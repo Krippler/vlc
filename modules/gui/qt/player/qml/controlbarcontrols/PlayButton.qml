@@ -152,19 +152,7 @@ T.Control {
 
         hoverEnabled: true
 
-        readonly property bool cursorInside: {
-            if (!containsMouse)
-                return false
-
-            const center = (width / 2)
-            if (Helpers.pointInRadius( center - mouseX,
-                                       center - mouseY,
-                                       center )) {
-                return true
-            } else {
-                return false
-            }
-        }
+        readonly property bool cursorInside: containsMouse
 
         onCursorInsideChanged: {
             if (pressed && !cursorInside) {
@@ -208,7 +196,6 @@ T.Control {
     contentItem: T.Label {
         text: {
             const state = Player.playingState
-
             if (!paintOnly
                     && state !== Player.PLAYING_STATE_PAUSED
                     && state !== Player.PLAYING_STATE_STOPPED)
@@ -217,52 +204,45 @@ T.Control {
                 return VLCIcons.play_filled
         }
 
-        color: cursorInside ? theme.accent
-                            : "black"  //foreground is always black
+        color: "black" //foreground is always black, on top of the accent colored pill
 
-        font.pixelSize: Math.round(parent.height / 1.7)
-
+        font.pixelSize: Math.round(parent.height / 1.6)
         font.family: VLCIcons.fontFamily
 
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: Text.AlignHCenter
 
         Accessible.ignored: true
-
-        DelayedBehavior on color {
-            delayedEnabled: theme.initialized
-
-            ColorAnimation {
-                duration: VLCStyle.duration_veryShort
-                easing.type: Easing.InOutSine
-            }
-        }
     }
 
     background: Item {
-        implicitWidth: height
-        implicitHeight: VLCStyle.icon_medium
+        implicitWidth: VLCStyle.playButton_width
+        implicitHeight: VLCStyle.playButton_height
 
         Widgets.AnimatedBackground {
             anchors.fill: parent
-            anchors.margins: -border.width * 4
+            anchors.margins: -border.width * 2
 
-            radius: width / 2
+            radius: VLCStyle.playButton_radius + border.width * 2
             border.pixelAligned: false
 
             enabled: theme.initialized
-
             border.color: root.visualFocus ? theme.visualFocus : Qt.alpha(theme.visualFocus, 0.0)
         }
 
         Rectangle {
             anchors.fill: parent
+            radius: VLCStyle.playButton_radius
 
-            radius: width / 2
+            color: root.cursorInside ? Qt.lighter(theme.accent, 1.12) : theme.accent
 
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: "#e25b01" }
-                GradientStop { position: 1.0; color: "#f89a06" }
+            Behavior on color {
+                enabled: theme.initialized
+
+                ColorAnimation {
+                    duration: VLCStyle.duration_veryShort
+                    easing.type: Easing.InOutSine
+                }
             }
 
             Widgets.RoundedRectangleShadow {
@@ -277,16 +257,19 @@ T.Control {
                 color: theme.accent.alpha(0.29)
             }
 
+            // fills the pill while the button is held down, the
+            // press and hold action (stop) is triggered once it is full
             Rectangle {
                 id: innerRectangle
 
-                color: "white"
-
                 anchors.fill: parent
-                anchors.margins: _diminished ? (parent.width / 2)
-                                             : VLCStyle.dp(2, VLCStyle.scale)
+                anchors.leftMargin: _diminished ? 0 : (parent.width / 2)
+                anchors.rightMargin: anchors.leftMargin
 
-                radius: width / 2
+                visible: width > 0
+
+                radius: parent.radius
+                color: Qt.rgba(0, 0, 0, 0.25)
 
                 property bool _diminished: false
 
@@ -310,11 +293,12 @@ T.Control {
                     onTriggered: innerRectangle._diminished = true
                 }
 
-                Behavior on anchors.margins {
+                Behavior on anchors.leftMargin {
                     id: marginBehavior
+
                     NumberAnimation {
                         // Press and hold action must be triggered
-                        // as soon as the inner rectangle diminishes.
+                        // as soon as the inner rectangle is full.
                         // Subtract the interval here so that we satisfy
                         // that condition.
                         duration: mouseArea.pressAndHoldInterval - bindingTimer.interval

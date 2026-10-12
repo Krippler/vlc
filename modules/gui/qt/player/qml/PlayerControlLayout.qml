@@ -36,6 +36,11 @@ FocusScope {
 
     property int identifier: -1
 
+    // when set, the controls are laid out on a single row (left, center, then right controls)
+    // and this item fills the remaining space between the center and the right controls,
+    // used to embed the seek bar within the control row
+    property Item inlineItem: null
+
     readonly property PlayerControlbarModel model: {
         if (!!MainCtx.controlbarProfileModel.currentModel)
             return MainCtx.controlbarProfileModel.currentModel.getModel(identifier)
@@ -74,10 +79,11 @@ FocusScope {
 
         anchors.fill: parent
 
-        active: !loaderCenter.active &&
-                playerControlLayout.model &&
-                ((playerControlLayout.model.left && (playerControlLayout.model.left.count > 0)) ||
-                (playerControlLayout.model.right && (playerControlLayout.model.right.count > 0)))
+        active: !!playerControlLayout.model &&
+                (!!playerControlLayout.inlineItem ||
+                 (!loaderCenter.active &&
+                  ((playerControlLayout.model.left && (playerControlLayout.model.left.count > 0)) ||
+                   (playerControlLayout.model.right && (playerControlLayout.model.right.count > 0)))))
 
         focus: active
 
@@ -117,6 +123,57 @@ FocusScope {
                 }
             }
 
+            ControlRepeater {
+                id: centerRepeater
+
+                // center controls are only displayed here in the inline layout
+                model: ControlListFilter {
+                    sourceModel: playerControlLayout.inlineItem ? playerControlLayout.model.center : null
+
+                    player: Player
+                    ctx: MainCtx
+                }
+
+                Navigation.parentItem: playerControlLayout
+
+                availableWidth: loaderLeftRight.width
+                availableHeight: loaderLeftRight.height
+
+                Component.onCompleted: {
+                    requestLockUnlockAutoHide.connect(playerControlLayout.requestLockUnlockAutoHide)
+                    menuOpened.connect(playerControlLayout.menuOpened)
+                    playerControlLayout.forceUnlock.connect(centerRepeater.forceUnlock)
+                }
+            }
+
+            Item {
+                id: inlineItemContainer
+
+                visible: !!playerControlLayout.inlineItem
+
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.leftMargin: VLCStyle.margin_normal
+                Layout.rightMargin: VLCStyle.margin_normal
+
+                implicitHeight: playerControlLayout.inlineItem?.implicitHeight ?? 0
+
+                readonly property Item _inlineItem: playerControlLayout.inlineItem
+
+                function _attachInlineItem() {
+                    const item = _inlineItem
+                    if (!item)
+                        return
+
+                    item.parent = inlineItemContainer
+                    item.width = Qt.binding(() => inlineItemContainer.width)
+                    item.y = Qt.binding(() => (inlineItemContainer.height - item.height) / 2)
+                }
+
+                on_InlineItemChanged: _attachInlineItem()
+                Component.onCompleted: _attachInlineItem()
+            }
+
             Item {
                 function containsVisibleItem(repeater) {
                     for (let i = 0; i < repeater.count; ++i) {
@@ -133,7 +190,7 @@ FocusScope {
                                                                                                                : 0
 
                 Layout.fillWidth: true
-                visible: true
+                visible: !playerControlLayout.inlineItem
             }
 
             ControlRepeater {
@@ -226,6 +283,7 @@ FocusScope {
 
         // TODO: "ControlListFilter"'s count......
         active: !!playerControlLayout.model && !!playerControlLayout.model.center && (playerControlLayout.model.center.count > 0)
+                && !playerControlLayout.inlineItem
 
         Binding on width {
             delayed: true

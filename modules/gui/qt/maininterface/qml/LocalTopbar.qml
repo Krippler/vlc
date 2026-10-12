@@ -52,6 +52,9 @@ T.ToolBar {
 
     property alias navigationButton: navigationVisibilty
 
+    // name of the current location, displayed next to the navigation buttons
+    property string location: ""
+
     signal toggleNavigationVisibility()
     signal togglePlayqueueVisibility()
 
@@ -96,38 +99,77 @@ T.ToolBar {
                 id: navigationButtonsRow
 
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: VLCStyle.margin_normal
+                spacing: VLCStyle.margin_small
 
                 Navigation.parentItem: root
                 Navigation.rightItem: playqueueButtonsTop
+
+                Widgets.BannerCone {
+                    id: logo
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    sourceSize.width: VLCStyle.icon_normal
+                    sourceSize.height: VLCStyle.icon_normal
+                    color: theme.accent
+                }
+
+                Widgets.IconToolButton {
+                    id: menuBtn
+
+                    visible: !MainCtx.hasToolbarMenu
+                    font.pixelSize: VLCStyle.icon_normal
+                    text: VLCIcons.ellipsis
+                    description: qsTr("Menu")
+                    width: VLCStyle.bannerButton_width
+                    height: VLCStyle.bannerButton_height
+                    checked: contextMenu.shown
+
+                    Navigation.parentItem: navigationButtons
+                    Navigation.rightItem: navigationVisibilty
+
+                    onClicked: contextMenu.popup(this.mapToGlobal(0, height))
+
+                    Menus.QmlGlobalMenu {
+                        id: contextMenu
+                        ctx: MainCtx
+                    }
+                }
 
                 Widgets.IconToolButton {
                     id: navigationVisibilty
 
                     focus: true
-
                     text: VLCIcons.panel_left
                     description: qsTr("Show navigation menu")
-
                     AccessibleCompat.id: "sidebarToggleButton"
 
-                    font.pixelSize: VLCStyle.icon_banner
+                    font.pixelSize: VLCStyle.icon_normal
                     height: VLCStyle.bannerButton_height
                     width: VLCStyle.bannerButton_width
 
                     onClicked: root.toggleNavigationVisibility()
 
                     Navigation.parentItem: navigationButtons
+                    Navigation.leftItem: menuBtn
                     Navigation.rightItem: historyBack
+                }
+
+                Rectangle {
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    width: VLCStyle.border
+                    height: VLCStyle.dp(16, VLCStyle.scale)
+
+                    color: theme.separator
                 }
 
                 Widgets.IconToolButton {
                     id: historyBack
 
-                    font.pixelSize: VLCStyle.icon_banner
+                    font.pixelSize: VLCStyle.icon_normal
                     text: VLCIcons.back
                     description: qsTr("Previous")
-
                     AccessibleCompat.id: "historyBackButton"
 
                     height: VLCStyle.bannerButton_height
@@ -146,14 +188,42 @@ T.ToolBar {
                     Navigation.rightItem: playlistBtn
                 }
 
-                Widgets.BannerCone {
-                    id: logo
+                Widgets.SubtitleLabel {
+                    id: locationLabel
 
-                    sourceSize.width: VLCStyle.bannerButton_height
-                    sourceSize.height: VLCStyle.bannerButton_height
-                    color: theme.accent
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    visible: text.length > 0
+                    text: root.location
+
+                    color: theme.fg.primary
+                    font.pixelSize: VLCStyle.fontSize_large
+                    font.weight: Font.Normal
                 }
             }
+        }
+
+        // window title, centered in the top bar
+        Widgets.SubtitleLabel {
+            id: windowTitle
+
+            anchors.centerIn: parent
+
+            width: Math.min(implicitWidth,
+                            parent.width - 2 * Math.max(navigationButtons.x + navigationButtons.width,
+                                                        parent.width - playqueueButtonsTop.x) - 2 * VLCStyle.margin_normal)
+            visible: width > VLCStyle.margin_normal
+
+            text: {
+                const title = MainCtx.intfMainWindow?.title ?? ""
+                return (title.length > 0) ? title : qsTr("VLC media player")
+            }
+
+            color: theme.fg.secondary
+            font.pixelSize: VLCStyle.fontSize_normal
+            font.weight: Font.Normal
+            horizontalAlignment: Text.AlignHCenter
+            elide: Text.ElideRight
         }
 
         Item {
@@ -189,33 +259,11 @@ T.ToolBar {
                     plListView: root.plListView
 
                     Navigation.parentItem: playqueueButtonsTop
-                    Navigation.rightItem: menuBtn
                     Navigation.leftItem: historyBack
 
                     onClicked:  root.togglePlayqueueVisibility()
                 }
 
-                Widgets.IconToolButton {
-                    id: menuBtn
-
-                    visible: !MainCtx.hasToolbarMenu
-                    font.pixelSize: VLCStyle.icon_banner
-                    text: VLCIcons.more
-                    description: qsTr("Menu")
-                    width: VLCStyle.bannerButton_width
-                    height: VLCStyle.bannerButton_height
-                    checked: contextMenu.shown
-
-                    Navigation.parentItem: playqueueButtonsTop
-                    Navigation.leftItem: playlistBtn
-
-                    onClicked: contextMenu.popup(this.mapToGlobal(0, height))
-
-                    Menus.QmlGlobalMenu {
-                        id: contextMenu
-                        ctx: MainCtx
-                    }
-                }
             }
         }
 

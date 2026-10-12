@@ -28,7 +28,12 @@ import VLC.MainInterface
 T.ProgressBar {
     id: control
 
-    readonly property real _hoveredScalingFactor: 1.8
+    // boxed: draw the bar as a tall rounded well with a dimmed progress fill
+    // and an always visible handle, used by the inline control bar layout
+    property bool boxed: false
+    property real boxRadius: VLCStyle.controlBarSeekRadius
+
+    readonly property real _hoveredScalingFactor: boxed ? 1.0 : 1.8
     property int barHeight: VLCStyle.dp(5, VLCStyle.scale)
     readonly property real _scaledBarHeight: control.barHeight * _hoveredScalingFactor
     readonly property real _scaledY: (-control.barHeight / 2) * (control._hoveredScalingFactor - 1)
@@ -42,6 +47,7 @@ T.ProgressBar {
     property real _tooltipPosition: (Widgets.PointingToolTipAttached.instance?.pos.x ?? 0.0) / width
 
     property color backgroundColor: theme.bg.primary
+    property color progressColor: boxed ? Qt.alpha(theme.fg.primary, 0.25) : theme.fg.primary
     property real touchHandlerMargin: VLCStyle.touchHandlerMargin
 
     Keys.onRightPressed: Player.jumpFwd()
@@ -324,7 +330,7 @@ T.ProgressBar {
             visible: !Player.hasChapters
             color: control.backgroundColor
             anchors.fill: parent
-            radius: implicitHeight
+            radius: control.boxed ? control.boxRadius : implicitHeight
         }
 
         Repeater {
@@ -357,7 +363,7 @@ T.ProgressBar {
                     readonly property bool _hovered: hoverHandler.hovered &&
                                             (hoverHandler.point.position.x > x && hoverHandler.point.position.x < x+width)
 
-                    color: _currentChapter < 0 ? theme.fg.primary : control.backgroundColor
+                    color: _currentChapter < 0 ? control.progressColor : control.backgroundColor
                     width: sliderRect.width * seekpointsRect.endPosition - x - control._seekPointsDistance
                     x: sliderRect.width * seekpointsRect.startPosition
 
@@ -370,7 +376,7 @@ T.ProgressBar {
 
                         width: sliderRect.width * control.visualPosition - parent.x - control._seekPointsDistance
                         visible: parent._currentChapter === 0
-                        color: theme.fg.primary
+                        color: control.progressColor
 
                         // We use dynamic mutability group because time interpolation
                         // may induce rapid change:
@@ -431,9 +437,9 @@ T.ProgressBar {
             id: progressRect
             width: control.visualPosition * parent.width
             visible: !Player.hasChapters
-            color: theme.fg.primary
+            color: control.progressColor
             height: control.barHeight
-            radius: control._seekPointsRadius
+            radius: control.boxed ? control.boxRadius : control._seekPointsRadius
 
             // We use dynamic mutability group because time interpolation
             // may induce rapid change:
@@ -575,7 +581,7 @@ T.ProgressBar {
 
         implicitWidth: sliderHandle._size
         implicitHeight: sliderHandle._size
-        radius: VLCStyle.margin_small
+        radius: control.boxed ? VLCStyle.dp(2, VLCStyle.scale) : VLCStyle.margin_small
         color: theme.fg.primary
 
         // We use dynamic mutability group because time interpolation
@@ -625,7 +631,18 @@ T.ProgressBar {
             }
         ]
 
-        state: (hoverHandler.hovered || control.visualFocus)
+        states: State {
+            name: "boxed"
+            PropertyChanges {
+                target: sliderHandle
+                visible: true
+                implicitWidth: VLCStyle.controlBarSeekHandleWidth
+                implicitHeight: control.barHeight
+            }
+        }
+
+        state: control.boxed ? "boxed"
+               : (hoverHandler.hovered || control.visualFocus)
                ? ((control._currentChapterHovered || (Player.hasChapters && fsm._state === fsm.fsmHeld)) ? "visibleLarge" : "visible")
                : "hidden"
     }

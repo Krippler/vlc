@@ -693,13 +693,13 @@ void SystemPalette::makeDarkPalette()
 
     {
         C::ColorSet CS = C::View;
-        setColor(CS, C::Bg, C::Primary, C::Normal, darkGrey300 );
-        setColor(CS, C::Bg, C::Secondary, C::Normal, Qt::black );
+        setColor(CS, C::Bg, C::Primary, C::Normal, darkGrey100 );
+        setColor(CS, C::Bg, C::Secondary, C::Normal, darkGrey050 );
 
-        setColor(CS, C::Fg, C::Primary, C::Normal, Qt::white );
+        setColor(CS, C::Fg, C::Primary, C::Normal, QColor("#E6E6E6") );
         setColor(CS, C::Fg, C::Primary, C::Disabled, setColorAlpha(Qt::white, 0.3) );
 
-        setColor(CS, C::Fg, C::Secondary, C::Normal, setColorAlpha(Qt::white, 0.6));
+        setColor(CS, C::Fg, C::Secondary, C::Normal, setColorAlpha(Qt::white, 0.5));
 
         setColor(CS, C::Bg, C::Negative, C::Normal, QColor(Qt::darkRed));
         setColor(CS, C::Fg, C::Negative, C::Normal, Qt::red);
@@ -720,7 +720,7 @@ void SystemPalette::makeDarkPalette()
 
         setColor(CS, C::Decoration, C::Shadow, C::Normal, setColorAlpha(Qt::black, 0.22));
 
-        setColor(CS, C::Decoration, C::Separator, C::Normal, darkGrey800);
+        setColor(CS, C::Decoration, C::Separator, C::Normal, darkGrey500);
 
         setColor(CS, C::Decoration, C::Accent, C::Normal, orange500);
         setColor(CS, C::Fg, C::Link, C::Normal, orange500);
@@ -729,9 +729,9 @@ void SystemPalette::makeDarkPalette()
     //window banner & miniplayer
     {
         C::ColorSet CS = C::Window;
-        setColor(CS, C::Bg, C::Primary, C::Normal, Qt::black); //FIXME
-        setColor(CS, C::Bg, C::Secondary, C::Normal, Qt::black);
-        setColor(CS, C::Decoration, C::Border, C::Normal, darkGrey800); //FIXME not a predef
+        setColor(CS, C::Bg, C::Primary, C::Normal, darkGrey150);
+        setColor(CS, C::Bg, C::Secondary, C::Normal, darkGrey100);
+        setColor(CS, C::Decoration, C::Border, C::Normal, darkGrey500);
     }
 
     //badges
@@ -744,9 +744,9 @@ void SystemPalette::makeDarkPalette()
     //tab button
     {
         C::ColorSet CS = C::TabButton;
-        setColor(CS, C::Bg, C::Primary, C::Normal, setColorAlpha(darkGrey800, 0.0));
-        setColor(CS, C::Bg, C::Primary, C::Focused, darkGrey800);
-        setColor(CS, C::Bg, C::Primary, C::Hovered, darkGrey800);
+        setColor(CS, C::Bg, C::Primary, C::Normal, setColorAlpha(darkGrey500, 0.0));
+        setColor(CS, C::Bg, C::Primary, C::Focused, darkGrey500);
+        setColor(CS, C::Bg, C::Primary, C::Hovered, darkGrey500);
 
         setColor(CS, C::Fg, C::Primary, C::Normal, setColorAlpha(Qt::white, 0.6));
         setColor(CS, C::Fg, C::Primary, C::Focused, Qt::white);
@@ -776,9 +776,9 @@ void SystemPalette::makeDarkPalette()
     //menubar
     {
         C::ColorSet CS = C::MenuBar;
-        setColor(CS, C::Bg, C::Primary, C::Normal, setColorAlpha(darkGrey800, 0.0));
-        setColor(CS, C::Bg, C::Primary, C::Focused, darkGrey800);
-        setColor(CS, C::Bg, C::Primary, C::Hovered, darkGrey800);
+        setColor(CS, C::Bg, C::Primary, C::Normal, setColorAlpha(darkGrey500, 0.0));
+        setColor(CS, C::Bg, C::Primary, C::Focused, darkGrey500);
+        setColor(CS, C::Bg, C::Primary, C::Hovered, darkGrey500);
         setColor(CS, C::Fg, C::Primary, C::Normal, Qt::white);
         setColor(CS, C::Fg, C::Primary, C::Disabled, setColorAlpha(Qt::white, 0.2));
     }
@@ -786,13 +786,13 @@ void SystemPalette::makeDarkPalette()
     //Item
     {
         C::ColorSet CS = C::Item;
-        setColor(CS, C::Bg, C::Primary, C::Normal, setColorAlpha(darkGrey800, 0.0));
-        setColor(CS, C::Bg, C::Primary, C::Focused, setColorAlpha(darkGrey800, 0.5));
-        setColor(CS, C::Bg, C::Primary, C::Hovered, setColorAlpha(darkGrey800, 0.5));
+        setColor(CS, C::Bg, C::Primary, C::Normal, setColorAlpha(darkGrey500, 0.0));
+        setColor(CS, C::Bg, C::Primary, C::Focused, setColorAlpha(darkGrey500, 0.5));
+        setColor(CS, C::Bg, C::Primary, C::Hovered, setColorAlpha(darkGrey500, 0.5));
 
-        setColor(CS, C::Bg, C::Highlight, C::Normal, darkGrey800);
-        setColor(CS, C::Bg, C::Highlight, C::Focused, setColorAlpha(darkGrey800, 0.8));
-        setColor(CS, C::Bg, C::Highlight, C::Hovered, setColorAlpha(darkGrey800, 0.8));
+        setColor(CS, C::Bg, C::Highlight, C::Normal, darkGrey500);
+        setColor(CS, C::Bg, C::Highlight, C::Focused, setColorAlpha(darkGrey500, 0.8));
+        setColor(CS, C::Bg, C::Highlight, C::Hovered, setColorAlpha(darkGrey500, 0.8));
         setColor(CS, C::Fg, C::Highlight, C::Normal, Qt::white);
 
         setColor(CS, C::Fg, C::Primary, C::Normal, Qt::white);
@@ -805,7 +805,7 @@ void SystemPalette::makeDarkPalette()
     {
         C::ColorSet CS = C::ButtonAccent;
         setColor(CS, C::Bg, C::Primary, C::Normal, orange500);
-        setColor(CS, C::Bg, C::Primary, C::Pressed, QColor("#e67a30"));  //FIXME not a predef
+        setColor(CS, C::Bg, C::Primary, C::Pressed, orange500.darker(115));
         setColor(CS, C::Bg, C::Primary, C::Disabled, setColorAlpha(Qt::white, 0.2));
 
         setColor(CS, C::Fg, C::Primary, C::Normal, Qt::white);
@@ -836,19 +836,19 @@ void SystemPalette::makeDarkPalette()
     //tooltip
     {
         C::ColorSet CS = C::Tooltip;
-        setColor(CS, C::Bg, C::Primary, C::Normal, darkGrey200);
+        setColor(CS, C::Bg, C::Primary, C::Normal, darkGrey100);
         setColor(CS, C::Fg, C::Primary, C::Normal, Qt::white);
     }
 
     //slider
     {
         C::ColorSet CS = C::Slider;
-        setColor(CS, C::Bg, C::Primary, C::Normal, setColorAlpha("#929292", 0.2)); //FIXME not in the palette
-        setColor(CS, C::Bg, C::Primary, C::Focused, setColorAlpha("#929292", 0.4));
-        setColor(CS, C::Bg, C::Primary, C::Hovered, setColorAlpha("#929292", 0.4));
+        setColor(CS, C::Bg, C::Primary, C::Normal, darkGrey050);
+        setColor(CS, C::Bg, C::Primary, C::Focused, darkGrey050.lighter(160));
+        setColor(CS, C::Bg, C::Primary, C::Hovered, darkGrey050.lighter(160));
 
         setColor(CS, C::Fg, C::Primary, C::Normal, orange500);
-        setColor(CS, C::Fg, C::Positive, C::Normal, "#0F7B0F");  //FIXME
+        setColor(CS, C::Fg, C::Positive, C::Normal, green500);
         setColor(CS, C::Fg, C::Neutral, C::Normal, "#9D5D00");  //FIXME
         setColor(CS, C::Fg, C::Negative, C::Normal, "#C42B1C");  //FIXME
     }
@@ -857,7 +857,7 @@ void SystemPalette::makeDarkPalette()
     {
         C::ColorSet CS = C::ComboBox;
         setColor(CS, C::Fg, C::Primary, C::Normal, Qt::white);
-        setColor(CS, C::Bg, C::Primary, C::Normal, setColorAlpha(darkGrey300, 0.8));
+        setColor(CS, C::Bg, C::Primary, C::Normal, darkGrey150);
         setColor(CS, C::Bg, C::Secondary, C::Normal, darkGrey500);
     }
 
