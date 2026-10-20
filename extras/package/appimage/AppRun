@@ -15,6 +15,10 @@ export QT_PLUGIN_PATH="$APPDIR/usr/plugins"
 export QML_IMPORT_PATH="$APPDIR/usr/qml"
 export QML2_IMPORT_PATH="$APPDIR/usr/qml"
 
+# the bundled libva looks for the VA-API drivers of the host in the Ubuntu
+# location only, also look where the other distributions install them
+export LIBVA_DRIVERS_PATH=${LIBVA_DRIVERS_PATH:-/usr/lib/x86_64-linux-gnu/dri:/usr/lib64/dri:/usr/lib/dri}
+
 # the AppImage bundles the X11 Qt platform plugin, it also runs on Wayland
 # sessions through XWayland
 export QT_QPA_PLATFORM=${QT_QPA_PLATFORM:-xcb}

@@ -5,8 +5,9 @@
 # AppImage" workflow. It installs the base libraries any desktop provides,
 # then, as an unprivileged user:
 #   - decodes the given clip, to check that the plugins load
-#   - starts the Qt interface on a virtual X server, to check that the
-#     bundled Qt and its plugins are used (they are not on this system)
+#   - plays it with the Qt interface on a virtual X server, to check that
+#     the bundled Qt and its plugins are used (they are not on this system)
+# VLC must exit cleanly after both, crashes at exit are failures too.
 #
 # usage: test-appimage.sh <VLC AppImage> <clip>
 
@@ -46,23 +47,35 @@ echo "==> version"
 "${run[@]}" "$APPIMAGE" --version
 
 echo "==> decoding $CLIP"
+status=0
 "${run[@]}" "$APPIMAGE" -I dummy --vout=dummy --aout=dummy --play-and-exit -vv \
-    "$CLIP" > "$LOGS/decode.log" 2>&1 || true
+    "$CLIP" > "$LOGS/decode.log" 2>&1 || status=$?
 grep -E 'using (video|audio) decoder module' "$LOGS/decode.log"
 grep -q 'using video decoder module "avcodec"' "$LOGS/decode.log"
 if grep -E 'cannot load plug-in' "$LOGS/decode.log"; then
     echo "error: some plugins cannot be loaded"
     exit 1
 fi
+if [ "$status" != 0 ]; then
+    tail -n 20 "$LOGS/decode.log"
+    echo "error: VLC exited with status $status"
+    exit 1
+fi
 
 echo "==> Qt interface"
-"${run[@]}" timeout 20 \
+status=0
+"${run[@]}" timeout 60 \
     xvfb-run -a -s '-screen 0 1280x800x24' \
-    "$APPIMAGE" -I qt --qt-verbose -vv --no-qt-privacy-ask \
-    > "$LOGS/qt.log" 2>&1 || true
+    "$APPIMAGE" -I qt --qt-verbose -vv --no-qt-privacy-ask --aout=dummy \
+    --play-and-exit "$CLIP" > "$LOGS/qt.log" 2>&1 || status=$?
 if ! grep -q 'using interface module "qt"' "$LOGS/qt.log"; then
     grep -iE 'qt|platform' "$LOGS/qt.log" | tail -n 30
     echo "error: the Qt interface did not start"
     exit 1
 fi
-echo "the Qt interface started"
+if [ "$status" != 0 ]; then
+    tail -n 20 "$LOGS/qt.log"
+    echo "error: VLC exited with status $status"
+    exit 1
+fi
+echo "the Qt interface played the clip and exited cleanly"

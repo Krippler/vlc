@@ -48,18 +48,33 @@ MESON="$TOOLS_DIR/venv/bin/meson"
 
 # --- media library ------------------------------------------------------------
 # the distribution package is too old for VLC 4
+#
+# built as a static library, linked into the medialibrary plugin as in the
+# official VLC builds: VLC unloads its plugins before exiting, a shared
+# libmedialibrary would outlive the plugin and crash at exit when destroying
+# the logger the plugin gave it
 log "medialibrary $MEDIALIBRARY_VERSION"
-if [ ! -f "$DEPS_PREFIX/lib/pkgconfig/medialibrary.pc" ]; then
+if [ ! -f "$DEPS_PREFIX/lib/libmedialibrary.a" ]; then
     ML_SRC="$WORK_DIR/medialibrary-$MEDIALIBRARY_VERSION"
     if [ ! -d "$ML_SRC" ]; then
         curl -fsSL "https://code.videolan.org/videolan/medialibrary/-/archive/$MEDIALIBRARY_VERSION/medialibrary-$MEDIALIBRARY_VERSION.tar.bz2" \
             | tar -xj -C "$WORK_DIR"
     fi
-    "$MESON" setup --reconfigure "$WORK_DIR/medialibrary-build" "$ML_SRC" \
+    rm -rf "$WORK_DIR/medialibrary-build" "$DEPS_PREFIX"
+    "$MESON" setup "$WORK_DIR/medialibrary-build" "$ML_SRC" \
         --prefix="$DEPS_PREFIX" --libdir=lib --buildtype=release \
+        --default-library=static -Db_staticpic=true \
         -Dlibvlc=disabled -Dtests=disabled
     "$MESON" compile -C "$WORK_DIR/medialibrary-build" -j "$JOBS"
     "$MESON" install -C "$WORK_DIR/medialibrary-build" --quiet
+    # VLC looks the library up without --static: make the dependencies of
+    # the static library public
+    sed -i -e 's/^Requires.private:/Requires:/' \
+           -e '/^Libs: /{/-pthread/!s/$/ -pthread/}' \
+           "$DEPS_PREFIX/lib/pkgconfig/medialibrary.pc"
+    # meson keeps the path of the library found at configure time: configure
+    # VLC again from scratch
+    rm -rf "$WORK_DIR/vlc-build"
 fi
 export PKG_CONFIG_PATH="$DEPS_PREFIX/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
 export LD_LIBRARY_PATH="$DEPS_PREFIX/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
