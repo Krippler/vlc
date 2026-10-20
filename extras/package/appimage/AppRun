@@ -8,6 +8,13 @@ for hook in "$APPDIR"/apprun-hooks/*.sh; do
     [ -f "$hook" ] && . "$hook"
 done
 
+# the bundled Qt plugins and QML modules, for every process of the AppImage:
+# qt.conf is only read next to the main executable, while VLC also runs Qt
+# from helpers (vlc-qt-check checks that the interface can start)
+export QT_PLUGIN_PATH="$APPDIR/usr/plugins"
+export QML_IMPORT_PATH="$APPDIR/usr/qml"
+export QML2_IMPORT_PATH="$APPDIR/usr/qml"
+
 # the AppImage bundles the X11 Qt platform plugin, it also runs on Wayland
 # sessions through XWayland
 export QT_QPA_PLATFORM=${QT_QPA_PLATFORM:-xcb}

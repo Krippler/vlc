@@ -77,21 +77,20 @@ jobs:
           extras/package/appimage/build-appimage.sh
           ccache --show-stats || true
 
-      - name: Smoke test
+      - name: Test on a clean system
         run: |
-          # decode a generated clip with the packaged VLC: this loads the
-          # demuxer, decoder and filter plugins, not only the plugins cache
+          # decode a generated clip and start the Qt interface with the
+          # packaged VLC, in a container without its build dependencies
           sudo apt-get install -y --no-install-recommends ffmpeg
           ffmpeg -loglevel error -f lavfi -i testsrc2=size=320x240:rate=25 \
             -f lavfi -i sine -t 2 -c:v libx264 -c:a aac -shortest "$RUNNER_TEMP/clip.mp4"
-          appimage=$(ls "$WORK_DIR"/VLC-*-x86_64.AppImage)
-          export APPIMAGE_EXTRACT_AND_RUN=1
-          "$appimage" --version
-          "$appimage" -I dummy --vout=dummy --aout=dummy --play-and-exit -vv \
-            "$RUNNER_TEMP/clip.mp4" > "$RUNNER_TEMP/vlc.log" 2>&1 || true
-          grep -E 'using (video|audio) decoder module' "$RUNNER_TEMP/vlc.log"
-          grep -q 'using video decoder module "avcodec"' "$RUNNER_TEMP/vlc.log"
-          ! grep -E 'cannot load plug-in' "$RUNNER_TEMP/vlc.log"
+          appimage=$(basename "$(ls "$WORK_DIR"/VLC-*-x86_64.AppImage)")
+          docker run --rm \
+            -v "$WORK_DIR:/appimage:ro" \
+            -v "$RUNNER_TEMP:/media:ro" \
+            -v "$PWD/extras/package/appimage:/scripts:ro" \
+            debian:trixie \
+            bash /scripts/test-appimage.sh "/appimage/$appimage" /media/clip.mp4
 
       - name: Checksum
         run: |

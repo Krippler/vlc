@@ -125,6 +125,10 @@ export LINUXDEPLOY_OUTPUT_VERSION="${VERSION#v}"
     "${deploy_args[@]}" \
     --plugin qt
 
+# Qt reads qt.conf next to the executable: the helpers running Qt need it too
+cp "$APPDIR/usr/bin/qt.conf" "$APPDIR/usr/libexec/vlc/qt.conf"
+sed -i 's|^Prefix = .*|Prefix = ../../|' "$APPDIR/usr/libexec/vlc/qt.conf"
+
 # the plugins cache speeds up the startup, it is generated once deployed
 log "plugins cache"
 "$APPDIR/usr/libexec/vlc/vlc-cache-gen" "$APPDIR/usr/lib/vlc/plugins"
