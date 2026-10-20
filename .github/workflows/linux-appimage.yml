@@ -3,8 +3,12 @@ name: Linux AppImage
 # Builds VLC as an x86_64 AppImage.
 # - on every push to a branch and on manual runs: the AppImage is attached
 #   to the workflow run as an artifact
-# - on version tags (v1.2.3, v1.2.3-rc.1): a GitHub release is published
-#   with the AppImage and its checksum, tags with a suffix are pre-releases
+# - releases: a GitHub release is published with the AppImage and its
+#   checksum, either
+#     - when a version tag (v1.2.3, v1.2.3-rc.1) is pushed, or
+#     - when a push brings a version in extras/package/appimage/VERSION that
+#       has no tag yet: the v<version> tag is then created on the pushed commit
+#   versions with a suffix (1.2.3-rc.1) are published as pre-releases
 
 on:
   push:
@@ -49,13 +53,22 @@ jobs:
       - name: Version
         id: version
         run: |
+          release=false
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             version="${GITHUB_REF_NAME}"
+            release=true
           else
-            version="$(git describe --tags --always)"
+            version="v$(tr -d '[:space:]' < extras/package/appimage/VERSION)"
+            if [[ "$GITHUB_EVENT_NAME" == push ]] && ! git rev-parse -q --verify "refs/tags/${version}" > /dev/null; then
+              # a new version: tag the pushed commit and release it
+              release=true
+            else
+              version="$(git describe --tags --always)"
+            fi
           fi
           echo "version=${version}" >> "$GITHUB_OUTPUT"
-          echo "Building ${version}"
+          echo "release=${release}" >> "$GITHUB_OUTPUT"
+          echo "Building ${version} (release: ${release})"
 
       - name: Build the AppImage
         env:
@@ -96,15 +109,17 @@ jobs:
           if-no-files-found: error
 
       - name: Publish the release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: steps.version.outputs.release == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ steps.version.outputs.version }}
         run: |
           prerelease=()
           [[ "$TAG" == *-* ]] && prerelease=(--prerelease)
+          # creates the tag on the built commit when it does not exist yet
           gh release create "$TAG" \
             --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
             --title "VLC ${TAG}" \
             --generate-notes \
             "${prerelease[@]}" \

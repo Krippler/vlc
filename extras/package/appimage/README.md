@@ -36,14 +36,27 @@ The AppImage is written to `build-appimage/`. `WORK_DIR`, `VERSION` and
 The `Linux AppImage` workflow (`.github/workflows/linux-appimage.yml`) builds
 the AppImage on every push and attaches it to the workflow run.
 
-Pushing a version tag publishes a GitHub release with the AppImage and its
-`SHA256SUMS`:
+A GitHub release with the AppImage and its `SHA256SUMS` is published in two
+ways:
 
-```sh
-git tag -a v0.2.0 -m "VLC v0.2.0"
-git push origin v0.2.0
-```
+- bump the version in `extras/package/appimage/VERSION` and push: when no
+  tag exists for that version yet, the workflow creates the `v<version>` tag
+  on the pushed commit and publishes the release
 
-Tags follow [semantic versioning](https://semver.org) with a `v` prefix.
-Tags with a suffix, such as `v0.2.0-rc.1`, are published as pre-releases.
-The release notes are generated from the commits since the previous tag.
+  ```sh
+  echo 0.2.0 > extras/package/appimage/VERSION
+  git commit -am "release 0.2.0"
+  git push
+  ```
+
+- or push a version tag directly:
+
+  ```sh
+  git tag -a v0.2.0 -m "VLC v0.2.0"
+  git push origin v0.2.0
+  ```
+
+Versions follow [semantic versioning](https://semver.org), tags get a `v`
+prefix. Versions with a suffix, such as `0.2.0-rc.1`, are published as
+pre-releases. The release notes are generated from the commits since the
+previous release.
