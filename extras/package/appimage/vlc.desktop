@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=VLC media player
+GenericName=Media player
+Comment=Read, capture, broadcast your multimedia streams
+Exec=vlc --started-from-file %U
+TryExec=vlc
+Icon=vlc
+Terminal=false
+Categories=AudioVideo;Player;Recorder;
+MimeType=video/mp4;video/x-matroska;video/webm;video/x-msvideo;video/quicktime;video/mpeg;video/ogg;audio/mpeg;audio/mp4;audio/flac;audio/ogg;audio/x-wav;audio/x-matroska;application/ogg;x-content/video-dvd;x-content/video-bluray;x-content/audio-cdda;
+Keywords=Player;Capture;DVD;Audio;Video;Server;Broadcast;
+StartupWMClass=vlc

@@ -1,0 +1,15 @@
+#!/bin/sh
+# entry point of the VLC AppImage
+APPDIR=${APPDIR:-$(dirname "$(readlink -f "$0")")}
+export APPDIR
+
+# environment set up by the linuxdeploy plugins (Qt plugins and QML paths)
+for hook in "$APPDIR"/apprun-hooks/*.sh; do
+    [ -f "$hook" ] && . "$hook"
+done
+
+# the AppImage bundles the X11 Qt platform plugin, it also runs on Wayland
+# sessions through XWayland
+export QT_QPA_PLATFORM=${QT_QPA_PLATFORM:-xcb}
+
+exec "$APPDIR/usr/bin/vlc" "$@"

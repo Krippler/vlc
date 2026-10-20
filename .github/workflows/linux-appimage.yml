@@ -1,0 +1,111 @@
+name: Linux AppImage
+
+# Builds VLC as an x86_64 AppImage.
+# - on every push to a branch and on manual runs: the AppImage is attached
+#   to the workflow run as an artifact
+# - on version tags (v1.2.3, v1.2.3-rc.1): a GitHub release is published
+#   with the AppImage and its checksum, tags with a suffix are pre-releases
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+    paths-ignore: ['**.md']
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  appimage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    permissions:
+      contents: write
+    env:
+      WORK_DIR: ${{ github.workspace }}/build-appimage
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_MAXSIZE: 2G
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install the build dependencies
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ccache \
+            $(grep -v '^\s*#' extras/package/appimage/ubuntu-deps.txt | grep -v '^\s*$')
+
+      - name: Restore the compiler cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ccache-appimage-${{ github.sha }}
+          restore-keys: ccache-appimage-
+
+      - name: Version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            version="${GITHUB_REF_NAME}"
+          else
+            version="$(git describe --tags --always)"
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "Building ${version}"
+
+      - name: Build the AppImage
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          extras/package/appimage/build-appimage.sh
+          ccache --show-stats || true
+
+      - name: Smoke test
+        run: |
+          # decode a generated clip with the packaged VLC: this loads the
+          # demuxer, decoder and filter plugins, not only the plugins cache
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          ffmpeg -loglevel error -f lavfi -i testsrc2=size=320x240:rate=25 \
+            -f lavfi -i sine -t 2 -c:v libx264 -c:a aac -shortest "$RUNNER_TEMP/clip.mp4"
+          appimage=$(ls "$WORK_DIR"/VLC-*-x86_64.AppImage)
+          export APPIMAGE_EXTRACT_AND_RUN=1
+          "$appimage" --version
+          "$appimage" -I dummy --vout=dummy --aout=dummy --play-and-exit -vv \
+            "$RUNNER_TEMP/clip.mp4" > "$RUNNER_TEMP/vlc.log" 2>&1 || true
+          grep -E 'using (video|audio) decoder module' "$RUNNER_TEMP/vlc.log"
+          grep -q 'using video decoder module "avcodec"' "$RUNNER_TEMP/vlc.log"
+          ! grep -E 'cannot load plug-in' "$RUNNER_TEMP/vlc.log"
+
+      - name: Checksum
+        run: |
+          cd "$WORK_DIR"
+          sha256sum VLC-*-x86_64.AppImage > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Upload the artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VLC-${{ steps.version.outputs.version }}-x86_64-AppImage
+          path: |
+            ${{ env.WORK_DIR }}/VLC-*-x86_64.AppImage
+            ${{ env.WORK_DIR }}/SHA256SUMS
+          if-no-files-found: error
+
+      - name: Publish the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          prerelease=()
+          [[ "$TAG" == *-* ]] && prerelease=(--prerelease)
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "VLC ${TAG}" \
+            --generate-notes \
+            "${prerelease[@]}" \
+            "$WORK_DIR"/VLC-*-x86_64.AppImage "$WORK_DIR"/SHA256SUMS
