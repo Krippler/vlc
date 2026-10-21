@@ -33,11 +33,15 @@ T.Popup {
     // Settings
     property var preferredWidth : stackView.currentItem.preferredWidth
 
+    // the menu floats above the control bar, inset from the edges of its parent
     width: Math.min((typeof preferredWidth !== "undefined")
                           ? preferredWidth : Number.MAX_VALUE
-                    , root.parent.width)
+                    , root.parent.width - 2 * VLCStyle.margin_small)
 
-    height: VLCStyle.dp(296, VLCStyle.scale)
+    height: VLCStyle.dp(360, VLCStyle.scale)
+
+    // keep the content within the rounded corners of the background
+    padding: VLCStyle.floatingPanel_radius / 2
 
     // Animations
 
@@ -57,16 +61,8 @@ T.Popup {
 
     background: Rectangle {
         // NOTE: The opacity should be stronger on a light background for readability.
-        color: popupTheme.bg.primary.alpha(popupTheme.palette.isDark ? 0.8 : 0.96)
-
-        Rectangle {
-            anchors.left: parent.left
-            anchors.right: parent.right
-
-            height: VLCStyle.margin_xxxsmall
-
-            color: popupTheme.border
-        }
+        color: popupTheme.bg.secondary.alpha(popupTheme.palette.isDark ? 0.95 : 0.96)
+        radius: VLCStyle.floatingPanel_radius
     }
 
     contentItem: T.StackView {

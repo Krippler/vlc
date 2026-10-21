@@ -32,7 +32,7 @@ T.Pane {
 
     readonly property color sliderColor: {
         const theme = volControl.colorContext
-        return (volControl.position > _fullvolpos) ? theme.fg.negative : theme.fg.primary
+        return (volControl.position > _fullvolpos) ? theme.fg.negative : theme.fg.positive
     }
 
     readonly property var _player: paintOnly ? ({ muted: false, volume: .5 }) : Player
@@ -98,7 +98,10 @@ T.Pane {
             id: volControl
 
             // FIXME: use VLCStyle
-            implicitWidth: VLCStyle.dp(100, VLCStyle.scale)
+            implicitWidth: VLCStyle.dp(88, VLCStyle.scale)
+
+            trackSize: VLCStyle.dp(16, VLCStyle.scale)
+            radius: VLCStyle.dp(2, VLCStyle.scale)
 
             // WARNING: Directly setting the insets break handle and background positioning.
             Binding on topInset {

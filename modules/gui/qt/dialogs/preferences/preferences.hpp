@@ -46,6 +46,9 @@ public:
     PrefsDialog( QWindow *, qt_intf_t * );
     virtual ~PrefsDialog();
 
+    /* switch to the simple view and display the given category (see SPrefsCat) */
+    void showSimplePanel( int );
+
 private:
     size_t count;
     module_t **p_list;

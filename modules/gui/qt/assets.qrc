@@ -24,6 +24,8 @@
         <file alias="ic_fluent_arrow_eject.svg">pixmaps/menu/ic_fluent_arrow_eject.svg</file>
         <file alias="exit.svg">pixmaps/menu/exit.svg</file>
         <file alias="ic_fluent_fast_forward.svg">pixmaps/menu/ic_fluent_fast_forward.svg</file>
+        <file alias="ic_fluent_keyboard.svg">pixmaps/menu/ic_fluent_keyboard.svg</file>
+        <file alias="ic_fluent_subtitle.svg">pixmaps/menu/ic_fluent_subtitle.svg</file>
         <file alias="file.svg">pixmaps/menu/file.svg</file>
         <file alias="folder.svg">pixmaps/menu/folder.svg</file>
         <file alias="help.svg">pixmaps/menu/help.svg</file>

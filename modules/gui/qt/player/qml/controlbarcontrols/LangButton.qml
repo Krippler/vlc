@@ -65,8 +65,9 @@ Widgets.IconToolButton {
 
             parent: root._parentItem
 
-            x: 0
-            y: (parent.positionSliderY - height)
+            // floating at the bottom right corner, above the control bar
+            x: parent.width - width - VLCStyle.margin_small
+            y: (parent.positionSliderY - height - VLCStyle.margin_small)
             z: 1
 
             focus: true

@@ -277,6 +277,18 @@ void SPrefsCatList::switchPanel( int i )
     emit currentItemChanged( i );
 }
 
+void SPrefsCatList::selectPanel( int i )
+{
+    QSignalMapper *mapper = findChild<QSignalMapper *>();
+    if( mapper )
+    {
+        QToolButton *button = qobject_cast<QToolButton *>( mapper->mapping( i ) );
+        if( button )
+            button->setChecked( true );
+    }
+    switchPanel( i );
+}
+
 /*********************************************************************
  * The Panels
  *********************************************************************/

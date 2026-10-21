@@ -97,9 +97,12 @@ T.ItemDelegate {
         enabled: control.enabled
     }
 
+    // in the collapsed (icon only) layout, the current entry is drawn as a filled tile
+    readonly property bool _tileHighlighted: !control.showText && (control.checked || control.highlighted)
+
     background: Widgets.AnimatedBackground {
         enabled: theme.initialized
-        color: theme.bg.primary
+        color: control._tileHighlighted ? Qt.alpha(theme.fg.secondary, 0.08) : theme.bg.primary
         border.color: visualFocus ? theme.visualFocus : "transparent"
 
         radius: control.radius
@@ -111,7 +114,7 @@ T.ItemDelegate {
                 verticalCenter: parent.verticalCenter
             }
             implicitHeight: parent.height / 2
-            visible: control.checked
+            visible: control.checked && control.showText
 
             radius: control.radius / 2
         }
@@ -138,7 +141,7 @@ T.ItemDelegate {
 
                 color: (control.highlighted || control.checked) ? theme.accent : theme.fg.primary
 
-                font.pixelSize: VLCStyle.icon_banner
+                font.pixelSize: control.showText ? VLCStyle.icon_banner : VLCStyle.icon_normal
             }
         }
 

@@ -109,14 +109,19 @@ public:
     Q_PROPERTY(bool isDark MEMBER m_isDark NOTIFY paletteChanged FINAL)
     Q_PROPERTY(bool hasCSDImage READ hasCSDImage NOTIFY hasCSDImageChanged FINAL)
     Q_PROPERTY(CSDMetrics* csdMetrics READ getCSDMetrics NOTIFY CSDMetricsChanged FINAL)
+    // when set, the native (widget based) menus of the application follow this palette
+    Q_PROPERTY(bool styleWidgetMenus READ styleWidgetMenus WRITE setStyleWidgetMenus NOTIFY styleWidgetMenusChanged FINAL)
 
     //standard color definitions used by light/dark themes
-    COLOR_DEFINITION(orange500, "#FF8800");
+    COLOR_DEFINITION(orange500, "#D37918");
     COLOR_DEFINITION(orange800, "#FF610A");
 
     COLOR_DEFINITION(orange400, "#f89a06"); //FIXME name have been chosen randomly by me
     COLOR_DEFINITION(orange200, "#e29a06"); //FIXME name have been chosen randomly by me
 
+    COLOR_DEFINITION(darkGrey050, "#090909");
+    COLOR_DEFINITION(darkGrey100, "#0F0F0F");
+    COLOR_DEFINITION(darkGrey150, "#1B1B1B");
     COLOR_DEFINITION(darkGrey200, "#1E1E1E");
     COLOR_DEFINITION(darkGrey300, "#212121");
     COLOR_DEFINITION(darkGrey400, "#242424");
@@ -133,6 +138,8 @@ public:
     COLOR_DEFINITION(lightGrey600, "#E5E5E5");
     COLOR_DEFINITION(lightGrey700, "#E0E0E0");
 
+    COLOR_DEFINITION(green500, "#7DA013");
+
     COLOR_DEFINITION(red500, "#FF0000");
 
 public:
@@ -143,6 +150,7 @@ public:
     CSDMetrics* getCSDMetrics() const;
 
     inline MainCtx* getCtx() const { return m_ctx; }
+    inline bool styleWidgetMenus() const { return m_styleWidgetMenus; }
     bool hasCSDImage() const;
 
     void setColor(ColorContext::ColorSet colorSet,  ColorContext::ColorSection section,
@@ -156,6 +164,7 @@ public:
 public slots:
     void setSource(ColorSchemeModel::ColorScheme source);
     void setCtx(MainCtx* ctx);
+    void setStyleWidgetMenus(bool value);
 
 
 signals:
@@ -164,9 +173,11 @@ signals:
     void hasCSDImageChanged();
     void ctxChanged();
     void CSDMetricsChanged();
+    void styleWidgetMenusChanged();
 
 private:
     void updatePalette();
+    void updateWidgetMenuStyle() const;
 
     void makeLightPalette();
     void makeDarkPalette();
@@ -178,6 +189,7 @@ private:
     ColorSchemeModel::ColorScheme m_source = ColorSchemeModel::ColorScheme::Day;
     bool m_isDark = false;
     bool m_hasCSDImage = false;
+    bool m_styleWidgetMenus = false;
 
     std::unique_ptr<ExternalPaletteImpl> m_palettePriv;
 

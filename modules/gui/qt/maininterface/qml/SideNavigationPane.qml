@@ -44,6 +44,29 @@ T.Pane {
 
     property alias model: navigationModel
 
+    // title of the deepest navigation entry matching the current view,
+    // used as the location shown in the top bar
+    readonly property string currentTitle: {
+        void listView.count // re-evaluate when entries are added or removed
+
+        const viewPath = History.viewPath
+        let title = ""
+        let depth = -1
+
+        for (let i = 0; i < navigationModel.rowCount(); ++i) {
+            const rowIndex = navigationModel.index(i, 0)
+            const uri = navigationModel.data(rowIndex, NavigationModel.URI)
+            const rowDepth = navigationModel.data(rowIndex, NavigationModel.DEPTH)
+
+            if (uri && (rowDepth > depth) && History.match(viewPath, uri)) {
+                title = navigationModel.data(rowIndex, NavigationModel.TITLE)
+                depth = rowDepth
+            }
+        }
+
+        return title
+    }
+
     readonly property int minimumWidth: VLCStyle.expandNavigationPaneWidth + safeAreaLeftMargin + safeAreaRightMargin
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,

@@ -39,6 +39,7 @@ QtObject {
         objectName: "themePalette"
         source: MainCtx.colorScheme.scheme
         ctx: MainCtx
+        styleWidgetMenus: true
     }
 
     readonly property SystemPalette darkPalette: SystemPalette {
@@ -323,9 +324,22 @@ QtObject {
 
     readonly property int controlBarBookmarksHeight: icon_xsmall * 0.9
 
+    // inline seek bar (time, slider and duration on the same row as the controls)
+    readonly property int controlBarSeekHeight: MainCtx.dp(26, scale)
+    readonly property int controlBarSeekRadius: MainCtx.dp(4, scale)
+    readonly property int controlBarSeekHandleWidth: MainCtx.dp(6, scale)
+
+    // play/pause "pill" button of the control bar
+    readonly property int playButton_width: MainCtx.dp(54, scale)
+    readonly property int playButton_height: MainCtx.dp(28, scale)
+    readonly property int playButton_radius: MainCtx.dp(4, scale)
+
     // Player control layout
-    readonly property int controlLayoutHeight: MainCtx.dp(64, scale)
+    readonly property int controlLayoutHeight: MainCtx.dp(48, scale)
     readonly property int controlLayoutHeightPinned: MainCtx.dp(32, scale)
+
+    // floating panels (play queue, track menus...)
+    readonly property int floatingPanel_radius: MainCtx.dp(8, scale)
 
     // Scroll bar (size means width or height, depending on the orientation):
     readonly property real scrollBarInteractingSize: MainCtx.dp(8, scale)
